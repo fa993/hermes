@@ -17,7 +17,7 @@ impl OsLike for Os {
             (ShellCommand::CheckIfServiceExists, _) => Ok(format!("command -v {}", service.name())),
             (ShellCommand::EnableAndStartService, ServiceKind::External) => Ok(NO_OP.to_string()),
             (ShellCommand::EnableAndStartService, _) => Ok(format!(
-                "sudo systemctl enable {}.service && sudo systemctl start {}.service",
+                "sudo systemctl enable {}.service && sudo systemctl restart {}.service",
                 service.name(),
                 service.name()
             )),

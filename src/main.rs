@@ -1,6 +1,6 @@
 use clap::Parser;
 use cli::{Cli, Operation};
-use commands::up::up;
+use commands::{push::push, up::up};
 use log::error;
 
 pub mod cli;
@@ -19,7 +19,7 @@ async fn main() {
 async fn exec() -> anyhow::Result<()> {
     let cli = Cli::parse();
     match cli.operation {
-        Operation::Up { service, target } => up(service, target),
+        Operation::Up { service, target } => up(service, target).await,
+        Operation::Push { service, target } => push(service, target).await,
     }
-    .await
 }

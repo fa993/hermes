@@ -4,7 +4,7 @@ use getset::Getters;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{outcome::Outcome, target::Target};
+use super::target::Target;
 
 #[derive(Getters, Debug, Deserialize, Serialize)]
 #[get = "pub"]
@@ -34,9 +34,11 @@ pub enum ServiceKind {
 }
 
 impl Service {
-    pub fn install(&self, onto: &Target) -> anyhow::Result<Outcome> {
+    pub async fn install(&self, onto: &Target) -> anyhow::Result<()> {
         // do cyclic dependency check here
         // if dependant service is not installed, install
-        Ok(Outcome::Success)
+        // install dependencies
+
+        onto.install(self).await
     }
 }
