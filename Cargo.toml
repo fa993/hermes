@@ -1,0 +1,23 @@
+[package]
+name = "hermes"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["linux"]
+linux = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.86"
+async-ssh2-tokio = "0.8.10"
+clap = { version = "4.5.9", features = ["derive"] }
+env_logger = "0.11.3"
+getset = "0.1.2"
+handlebars = "5.1.2"
+log = "0.4.22"
+serde = { version = "1.0.204", features = ["derive"] }
+tokio = { version = "1.38.1", features = ["full"] }
+toml = "0.8.15"
+url = { version = "2.5.2", features = ["serde"] }
