@@ -47,7 +47,7 @@ impl Target {
         info!("Connection established");
 
         let out = client
-            .execute(Os::transpile(ShellCommand::CheckIfServiceExists(service))?.as_str())
+            .execute(Os::transpile(ShellCommand::CheckIfServiceExists, service)?.as_str())
             .await?;
 
         if out.exit_status != 0 {
@@ -57,8 +57,18 @@ impl Target {
             info!("{} service already seems to be installed", service.name())
         }
 
-        // check if we have an exit status of 0 this means service found
+        // do a git clone, git push
 
-        Ok(Outcome::Success)
+        info!("Starting service {}", service.name());
+        let out = client
+            .execute(Os::transpile(ShellCommand::EnableAndStartService, service)?.as_str())
+            .await?;
+
+        if out.exit_status == 0 {
+            info!("Successfully started and enabled service");
+            return Ok(Outcome::Success);
+        } else {
+            return Err(anyhow!("Couldn't Up service").context(out.stdout));
+        }
     }
 }

@@ -1,5 +1,5 @@
-use crate::models::service::Service;
-
-pub enum ShellCommand<'a> {
-    CheckIfServiceExists(&'a Service),
+#[non_exhaustive]
+pub enum ShellCommand {
+    CheckIfServiceExists,
+    EnableAndStartService,
 }
