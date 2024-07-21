@@ -23,6 +23,23 @@ pub enum SourceType {
     Tool { install: PathBuf },
 }
 
+impl SourceType {
+    pub fn is_tool(&self) -> bool {
+        matches!(self, SourceType::Tool { .. })
+    }
+
+    pub fn is_git(&self) -> bool {
+        matches!(self, SourceType::Git { .. })
+    }
+
+    pub fn get_repo_url(&self) -> Option<&Url> {
+        match self {
+            Self::Git { repo } => Some(repo),
+            _ => None,
+        }
+    }
+}
+
 #[non_exhaustive]
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "type", content = "values")]
@@ -30,7 +47,6 @@ pub enum ServiceKind {
     Node,
     Rust,
     Maven,
-    External,
 }
 
 impl Service {

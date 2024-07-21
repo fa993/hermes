@@ -20,6 +20,7 @@ pub enum Operation {
         /// Path to target.toml file
         target: PathBuf,
     },
+    /// To update a deployment
     Push {
         /// Path to service.toml file
         service: PathBuf,

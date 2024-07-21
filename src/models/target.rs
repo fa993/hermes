@@ -2,14 +2,14 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Ok};
 use async_ssh2_tokio::{AuthMethod, Client, ServerCheckMethod};
+use git2::Repository;
 use log::info;
 use serde::{Deserialize, Serialize};
+use temp_dir::TempDir;
+use tokio::process::Command;
 use url::Url;
 
-use crate::models::{
-    os::{linux::Os, shell_cmd::ShellCommand, OsLike},
-    service::ServiceKind,
-};
+use crate::models::os::{linux::Os, shell_cmd::ShellCommand, OsLike};
 
 use super::service::Service;
 
@@ -42,12 +42,46 @@ impl Target {
     }
 
     async fn do_push(&self, client: Client, service: &Service) -> anyhow::Result<()> {
-        if *service.kind() == ServiceKind::External {
-            info!("External Services are not pushed");
+        if !service.source().is_git() {
+            info!("Tools are not pushed");
             return Ok(());
         }
 
-        // git clone in tmp dir then git push to ssh, then
+        let git_repo = service.source().get_repo_url().ok_or(anyhow!(
+            "Incorrect Enum Variant for push {:?}",
+            service.source()
+        ))?;
+
+        // git clone in tmp dir then git push to ssh,
+        info!("Creating temporary directory");
+        let d = TempDir::new()?;
+
+        let out = Command::new("git")
+            .arg("clone")
+            .arg(git_repo.as_str())
+            .arg(d.path())
+            .spawn()?
+            .wait()
+            .await?;
+
+        if !out.success() {
+            return Err(anyhow!("Couldn't git clone"));
+        }
+
+        let out = Command::new("git")
+            .env(
+                "GIT_SSH_COMMAND",
+                format!("ssh -i {}", self.identity.as_path().display()),
+            )
+            .arg("push")
+            .arg(self.address.as_str())
+            .spawn()?
+            .wait()
+            .await?;
+
+        if !out.success() {
+            return Err(anyhow!("Couldn't git push"));
+        }
 
         info!("Starting service {}", service.name());
         let out = client
@@ -58,7 +92,7 @@ impl Target {
             info!("Successfully started and enabled service");
             return Ok(());
         } else {
-            return Err(anyhow!("Couldn't Up service").context(out.stdout));
+            return Err(anyhow!("Couldn't Start service").context(out.stdout));
         }
     }
 }
@@ -82,7 +116,7 @@ impl Target {
             .await?;
 
         if out.exit_status != 0 {
-            // service does not exist .. ssh the starter file and the starter script or install it
+            //TODO: service does not exist .. ssh the starter file and the starter script and git init bare or install it
             info!("{} service does not exist", service.name())
         } else {
             info!("{} service already seems to be installed", service.name())
