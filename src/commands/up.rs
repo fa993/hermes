@@ -8,7 +8,7 @@ pub async fn up<T: AsRef<Path>>(service_path: T, target_path: T) -> anyhow::Resu
     info!(
         "Deploying service {} to target {}",
         service.name(),
-        target.name
+        target.name(),
     );
     service.install(&target).await
 }

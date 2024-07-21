@@ -9,7 +9,7 @@ pub async fn erase<T: AsRef<Path>>(service_path: T, target_path: T) -> anyhow::R
     info!(
         "Erasing service {} in target {}",
         service.name(),
-        target.name
+        target.name()
     );
     target.erase(&service).await
 }

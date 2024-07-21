@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::anyhow;
 use async_ssh2_tokio::{AuthMethod, Client, ServerCheckMethod};
+use getset::Getters;
 use log::info;
 use serde::{Deserialize, Serialize};
 use temp_dir::TempDir;
@@ -10,17 +11,29 @@ use url::Url;
 
 use crate::models::os::{linux::Os, shell_cmd::ShellCommand, OsLike};
 
-use super::service::Service;
+use super::{connector::Connector, service::Service};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Getters, Debug, Deserialize, Serialize)]
+#[get = "pub"]
 pub struct Target {
-    pub name: String,
+    name: String,
     address: Url,
     identity: PathBuf,
+
+    //TODO: this is bad practice, DTO's shouldn't be mixed with domain objects
+    //In the future, make a separate struct for toml file repr
+    //and a separate struct to operate on it
+    #[serde(skip)]
+    handle: Connector,
 }
 
 impl Target {
+    // async fn connect_to_server(&mut self) -> anyhow::Result<()> {
+    //     self.handle.init(&self).await;
+    // }
+
     async fn connect_to_server(&self) -> anyhow::Result<Client> {
+        info!("Connecting to server at {}", self.address);
         //TODO waiting on https://github.com/Miyoshi-Ryota/async-ssh2-tokio/issues/65
         let auth_method =
             AuthMethod::with_key_file(self.identity.as_path().to_string_lossy().as_ref(), None);
@@ -37,10 +50,12 @@ impl Target {
         )
         .await?;
 
+        info!("Connection established");
+
         Ok(client)
     }
 
-    async fn do_push(&self, client: Client, service: &Service) -> anyhow::Result<()> {
+    async fn do_push(&self, service: &Service, client: Client) -> anyhow::Result<()> {
         if !service.source().is_git() {
             info!("Tools are not pushed");
             return Ok(());
@@ -94,22 +109,8 @@ impl Target {
             Err(anyhow!("Couldn't Start service").context(out.stdout))
         }
     }
-}
 
-impl Target {
-    pub async fn push(&self, service: &Service) -> anyhow::Result<()> {
-        info!("Connecting to server at {}", self.address);
-        let client = self.connect_to_server().await?;
-        info!("Connection established");
-        self.do_push(client, service).await
-    }
-
-    pub async fn install(&self, service: &Service) -> anyhow::Result<()> {
-        // first ssh into machine and then execute commands
-        info!("Connecting to server at {}", self.address);
-        let client = self.connect_to_server().await?;
-        info!("Connection established");
-
+    async fn do_install(&self, service: &Service, client: Client) -> anyhow::Result<()> {
         let out = client
             .execute(Os::transpile(ShellCommand::CheckIfServiceExists, service)?.as_str())
             .await?;
@@ -121,7 +122,20 @@ impl Target {
             info!("{} service already seems to be installed", service.name())
         }
 
-        self.do_push(client, service).await
+        self.do_push(service, client).await
+    }
+}
+
+impl Target {
+    pub async fn push(&self, service: &Service) -> anyhow::Result<()> {
+        let client = self.connect_to_server().await?;
+        self.do_push(service, client).await
+    }
+
+    pub async fn install(&self, service: &Service) -> anyhow::Result<()> {
+        // first ssh into machine and then execute commands
+        let client = self.connect_to_server().await?;
+        self.do_install(service, client).await
     }
 
     pub async fn down(&self, service: &Service) -> anyhow::Result<()> {
@@ -129,9 +143,7 @@ impl Target {
             return Err(anyhow!("Cannot pull a tool down"));
         }
 
-        info!("Connecting to server at {}", self.address);
         let client = self.connect_to_server().await?;
-        info!("Connection established");
 
         let out = client
             .execute(Os::transpile(ShellCommand::StopService, service)?.as_str())
@@ -150,9 +162,7 @@ impl Target {
             return Err(anyhow!("Cannot erase a tool"));
         }
 
-        info!("Connecting to server at {}", self.address);
         let client = self.connect_to_server().await?;
-        info!("Connection established");
 
         let out = client
             .execute(Os::transpile(ShellCommand::StopService, service)?.as_str())

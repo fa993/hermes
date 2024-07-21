@@ -9,7 +9,7 @@ pub async fn push<T: AsRef<Path>>(service_path: T, target_path: T) -> anyhow::Re
     info!(
         "Pushing service {} to target {}",
         service.name(),
-        target.name
+        target.name()
     );
     target.push(&service).await
 }

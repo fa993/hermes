@@ -9,7 +9,7 @@ pub async fn down<T: AsRef<Path>>(service_path: T, target_path: T) -> anyhow::Re
     info!(
         "Pulling service {} in target {} down",
         service.name(),
-        target.name
+        target.name()
     );
     target.down(&service).await
 }
