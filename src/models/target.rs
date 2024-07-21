@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Ok};
+use anyhow::anyhow;
 use async_ssh2_tokio::{AuthMethod, Client, ServerCheckMethod};
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -89,9 +89,9 @@ impl Target {
 
         if out.exit_status == 0 {
             info!("Successfully started and enabled service");
-            return Ok(());
+            Ok(())
         } else {
-            return Err(anyhow!("Couldn't Start service").context(out.stdout));
+            Err(anyhow!("Couldn't Start service").context(out.stdout))
         }
     }
 }
@@ -122,5 +122,60 @@ impl Target {
         }
 
         self.do_push(client, service).await
+    }
+
+    pub async fn down(&self, service: &Service) -> anyhow::Result<()> {
+        if service.source().is_tool() {
+            return Err(anyhow!("Cannot pull a tool down"));
+        }
+
+        info!("Connecting to server at {}", self.address);
+        let client = self.connect_to_server().await?;
+        info!("Connection established");
+
+        let out = client
+            .execute(Os::transpile(ShellCommand::StopService, service)?.as_str())
+            .await?;
+
+        if out.exit_status != 0 {
+            Err(anyhow!("Couldn't stop service").context(out.stdout))
+        } else {
+            info!("{} service stopped", service.name());
+            Ok(())
+        }
+    }
+
+    pub async fn erase(&self, service: &Service) -> anyhow::Result<()> {
+        if service.source().is_tool() {
+            return Err(anyhow!("Cannot erase a tool"));
+        }
+
+        info!("Connecting to server at {}", self.address);
+        let client = self.connect_to_server().await?;
+        info!("Connection established");
+
+        let out = client
+            .execute(Os::transpile(ShellCommand::StopService, service)?.as_str())
+            .await?;
+
+        if out.exit_status != 0 {
+            return Err(anyhow!("Couldn't stop service").context(out.stdout));
+        };
+        info!("{} service stopped", service.name());
+
+        // rm -rf the /etc/systemd/system/{service}.service
+        // rm -rf the git src folder
+        // rm -rf the startup file
+        let out = client
+            .execute(Os::transpile(ShellCommand::EraseService, service)?.as_str())
+            .await?;
+
+        if out.exit_status != 0 {
+            return Err(anyhow!("Couldn't erase service").context(out.stdout));
+        };
+
+        info!("{} service erased", service.name());
+
+        Ok(())
     }
 }

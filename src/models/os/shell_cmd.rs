@@ -2,4 +2,6 @@
 pub enum ShellCommand {
     CheckIfServiceExists,
     EnableAndStartService,
+    StopService,
+    EraseService,
 }
