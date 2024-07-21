@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Ok};
 use async_ssh2_tokio::{AuthMethod, Client, ServerCheckMethod};
-use git2::Repository;
 use log::info;
 use serde::{Deserialize, Serialize};
 use temp_dir::TempDir;
