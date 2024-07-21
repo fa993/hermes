@@ -17,7 +17,7 @@ pub struct Service {
 
 #[non_exhaustive]
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(tag = "type", content = "values")]
+#[serde(tag = "type", content = "values", rename_all = "lowercase")]
 pub enum SourceType {
     Git { repo: Url },
     Tool { install: PathBuf },
@@ -42,11 +42,12 @@ impl SourceType {
 
 #[non_exhaustive]
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-#[serde(tag = "type", content = "values")]
+#[serde(tag = "type", content = "values", rename_all = "lowercase")]
 pub enum ServiceKind {
     Node,
     Rust,
     Maven,
+    Java,
 }
 
 impl Service {

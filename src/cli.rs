@@ -27,4 +27,18 @@ pub enum Operation {
         /// Path to target.toml file
         target: PathBuf,
     },
+    /// To stop a deployment
+    Down {
+        /// Path to service.toml file
+        service: PathBuf,
+        /// Path to target.toml file
+        target: PathBuf,
+    },
+    /// To erase a deployment
+    Erase {
+        /// Path to service.toml file
+        service: PathBuf,
+        /// Path to target.toml file
+        target: PathBuf,
+    },
 }

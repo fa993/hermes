@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use clap::Parser;
 use cli::{Cli, Operation};
 use commands::{push::push, up::up};
@@ -21,5 +22,6 @@ async fn exec() -> anyhow::Result<()> {
     match cli.operation {
         Operation::Up { service, target } => up(service, target).await,
         Operation::Push { service, target } => push(service, target).await,
+        _ => Err(anyhow!("Unsupported Operation")),
     }
 }

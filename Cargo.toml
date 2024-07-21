@@ -18,6 +18,7 @@ getset = "0.1.2"
 handlebars = "5.1.2"
 log = "0.4.22"
 serde = { version = "1.0.204", features = ["derive"] }
+temp-dir = "0.1.13"
 tokio = { version = "1.38.1", features = ["full"] }
 toml = "0.8.15"
 url = { version = "2.5.2", features = ["serde"] }
