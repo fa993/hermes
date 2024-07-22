@@ -1,5 +1,6 @@
+use std::path::Path;
+
 use crate::models::service::Service;
-use anyhow::anyhow;
 
 use super::{shell_cmd::ShellCommand, OsLike};
 
@@ -34,8 +35,10 @@ impl OsLike for Os {
                 service.name(),
                 service.name()
             )),
-            #[allow(unreachable_patterns)]
-            (_, _) => Err(anyhow!("Command type not supported")),
         }
+    }
+
+    fn exec_script<T: AsRef<Path>>(script_path: T) -> anyhow::Result<String> {
+        todo!()
     }
 }

@@ -17,7 +17,7 @@ pub struct Service {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", content = "values", rename_all = "lowercase")]
 pub enum SourceType {
-    Git { repo: Url },
+    Git { repo: Url, env: PathBuf },
     Tool { install: PathBuf },
 }
 
@@ -32,7 +32,7 @@ impl SourceType {
 
     pub fn get_repo_url(&self) -> Option<&Url> {
         match self {
-            Self::Git { repo } => Some(repo),
+            Self::Git { repo, .. } => Some(repo),
             _ => None,
         }
     }

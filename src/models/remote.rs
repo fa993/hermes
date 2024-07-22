@@ -7,7 +7,11 @@ use tokio::process::Command;
 
 use crate::{
     commands::utils::get_service_from_toml,
-    models::os::{linux::Os, shell_cmd::ShellCommand, OsLike},
+    models::{
+        connector,
+        os::{linux::Os, shell_cmd::ShellCommand, OsLike},
+        service::SourceType,
+    },
 };
 
 #[derive(Debug)]
@@ -82,7 +86,14 @@ impl Remote {
 
         if out.is_err() {
             //TODO: service does not exist .. ssh the starter file and the starter script and git init bare or install it
-            info!("{} service does not exist", service.name())
+            info!("{} service does not exist", service.name());
+            match service.source() {
+                SourceType::Git { repo, env } => {}
+                SourceType::Tool { install } => {
+                    // ssh and run the install script
+                    self.connector.exec(Os::transpile(cmd, service))
+                }
+            };
         } else {
             info!("{} service already seems to be installed", service.name())
         }

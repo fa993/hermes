@@ -26,8 +26,6 @@ async fn exec() -> anyhow::Result<()> {
         Operation::Push { service, target } => push(service, target).await,
         Operation::Down { service, target } => down(service, target).await,
         Operation::Erase { service, target } => erase(service, target).await,
-        #[allow(unreachable_patterns)]
-        _ => Err(anyhow!("Unsupported Operation")),
     };
     info!("Success");
     res
