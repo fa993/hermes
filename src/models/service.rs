@@ -4,10 +4,6 @@ use getset::Getters;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::commands::utils::get_service_from_toml;
-
-use super::target::Target;
-
 #[derive(Getters, Debug, Deserialize, Serialize)]
 #[get = "pub"]
 pub struct Service {
@@ -50,20 +46,4 @@ pub enum ServiceKind {
     Rust,
     Maven,
     Java,
-}
-
-impl Service {
-    pub async fn install(&self, onto: &Target) -> anyhow::Result<()> {
-        // do cyclic dependency check here
-        // if dependant service is not installed, install
-        // install dependencies
-
-        for dep in self.dependencies() {
-            // read service file
-            let service = get_service_from_toml(dep)?;
-            onto.install(&service).await?;
-        }
-
-        onto.install(self).await
-    }
 }

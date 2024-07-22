@@ -1,17 +1,16 @@
 use async_ssh2_tokio::{AuthMethod, Client, ServerCheckMethod};
-use getset::Getters;
 use log::info;
 
 use super::target::Target;
 use crate::anyhow;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Connector {
-    client: Option<Client>,
+    client: Client,
 }
 
 impl Connector {
-    pub async fn init(&mut self, target: &Target) -> anyhow::Result<()> {
+    pub async fn new(target: &Target) -> anyhow::Result<Connector> {
         info!("Connecting to server at {}", target.address());
         //TODO waiting on https://github.com/Miyoshi-Ryota/async-ssh2-tokio/issues/65
         let auth_method =
@@ -32,24 +31,15 @@ impl Connector {
 
         info!("Connection established");
 
-        self.client = Some(client);
-        Ok(())
+        Ok(Connector { client })
     }
 
-    pub async fn exec(&self, command: &str) -> anyhow::Result<ExecResult> {
-        assert!(self.client.is_some());
-        let client = self.client.as_ref().unwrap();
-        let out = client.execute(command).await?;
-        Ok(ExecResult {
-            exit_code: out.exit_status,
-            stdout: out.stdout,
-        })
+    pub async fn exec(&self, command: &str) -> anyhow::Result<()> {
+        let out = self.client.execute(command).await?;
+        if out.exit_status != 0 {
+            Err(anyhow!("Couldn't execute remote command").context(out.stdout))
+        } else {
+            Ok(())
+        }
     }
-}
-
-#[derive(Getters, Debug)]
-#[get = "pub"]
-pub struct ExecResult {
-    exit_code: u32,
-    stdout: String,
 }
