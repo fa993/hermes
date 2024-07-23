@@ -35,6 +35,14 @@ impl OsLike for Os {
                 service.name(),
                 service.name()
             )),
+            (ShellCommand::CreateServiceFolder, _) => Ok(format!("mkdir {}", service.name(),)),
+            (ShellCommand::GitInitService, _) => {
+                Ok(format!("cd {} && git init --bare", service.name(),))
+            }
+            (ShellCommand::CleanupInstallService, _) => Ok(format!(
+                "chmod +x {}-startup.sh && systemctl daemon-reload && sudo nginx -s reload",
+                service.name(),
+            )),
         }
     }
 

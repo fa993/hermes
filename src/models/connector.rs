@@ -84,7 +84,35 @@ impl Connector {
         self.client
             .upload_file(
                 file.as_ref().to_string_lossy().into_owned().as_str(),
-                format!("{}/.env", service.name()).as_str(),
+                format!("/etc/nginx/default.d/{}.conf", service.name()).as_str(),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn transfer_starter<T: AsRef<Path>>(
+        &self,
+        file: T,
+        service: &Service,
+    ) -> anyhow::Result<()> {
+        self.client
+            .upload_file(
+                file.as_ref().to_string_lossy().into_owned().as_str(),
+                format!("{}-starter.sh", service.name()).as_str(),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn transfer_sysd<T: AsRef<Path>>(
+        &self,
+        file: T,
+        service: &Service,
+    ) -> anyhow::Result<()> {
+        self.client
+            .upload_file(
+                file.as_ref().to_string_lossy().into_owned().as_str(),
+                format!("/etc/systemd/system/{}.service", service.name()).as_str(),
             )
             .await?;
         Ok(())

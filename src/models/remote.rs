@@ -104,10 +104,28 @@ impl Remote {
                     // generate nginx file according to template
                     let nginx_file = builder.create_nginx(&configs)?;
                     // scp it along with dotenv
-                    self.connector.transfer(env.as_path()).await?;
+                    self.connector.transfer_env(env.as_path(), service).await?;
+                    self.connector
+                        .transfer_nginx(nginx_file.as_path(), service)
+                        .await?;
+                    self.connector
+                        .transfer_starter(starter_file.as_path(), service)
+                        .await?;
+                    self.connector
+                        .transfer_sysd(sysd_file.as_path(), service)
+                        .await?;
                     // mkdir folder with service name
+                    self.connector
+                        .exec(Os::transpile(ShellCommand::CreateServiceFolder, service)?.as_str())
+                        .await?;
                     // git init --bare it
-                    todo!()
+                    self.connector
+                        .exec(Os::transpile(ShellCommand::GitInitService, service)?.as_str())
+                        .await?;
+                    // cleanup command to grant permissions and systemctl daemon-reload, nginx-reload
+                    self.connector
+                        .exec(Os::transpile(ShellCommand::GitInitService, service)?.as_str())
+                        .await?;
                 }
                 SourceType::Tool { install } => {
                     // ssh and run the install script

@@ -4,4 +4,7 @@ pub enum ShellCommand {
     EnableAndStartService,
     StopService,
     EraseService,
+    CreateServiceFolder,
+    GitInitService,
+    CleanupInstallService,
 }
