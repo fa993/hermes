@@ -17,7 +17,7 @@ pub struct Service {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", content = "values", rename_all = "lowercase")]
 pub enum SourceType {
-    Git { repo: Url, env: PathBuf },
+    Git { repo: Url, env: PathBuf, port: u32 },
     Tool { install: PathBuf },
 }
 
@@ -40,10 +40,21 @@ impl SourceType {
 
 #[non_exhaustive]
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-#[serde(tag = "type", content = "values", rename_all = "lowercase")]
+#[serde(tag = "type", content = "values", rename_all = "snake_case")]
 pub enum ServiceKind {
     Node,
     Rust,
     Maven,
-    Java,
+    JavaJar,
+}
+
+impl ServiceKind {
+    pub fn get_startup_cmd(&self) -> &'static str {
+        match self {
+            ServiceKind::Node => "node src/index.js",
+            ServiceKind::Rust => "cargo run --release",
+            ServiceKind::Maven => "mvn run",
+            ServiceKind::JavaJar => "java --jar main.jar",
+        }
+    }
 }

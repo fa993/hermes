@@ -1,14 +1,16 @@
+use std::collections::HashMap;
+
 use super::{connector::Connector, service::Service, target::Target};
 
 use anyhow::anyhow;
 use log::info;
-use temp_dir::TempDir;
+use tempfile::TempDir;
 use tokio::process::Command;
 
 use crate::{
     commands::utils::get_service_from_toml,
     models::{
-        connector,
+        config_file::ConfigFileBuilder,
         os::{linux::Os, shell_cmd::ShellCommand, OsLike},
         service::SourceType,
     },
@@ -88,10 +90,37 @@ impl Remote {
             //TODO: service does not exist .. ssh the starter file and the starter script and git init bare or install it
             info!("{} service does not exist", service.name());
             match service.source() {
-                SourceType::Git { repo, env } => {}
+                SourceType::Git { env, port, .. } => {
+                    let builder = ConfigFileBuilder::new()?;
+                    let mut configs = HashMap::new();
+                    configs.insert("name", service.name().clone());
+                    configs.insert("port", port.to_string());
+                    configs.insert("cmd", service.kind().get_startup_cmd().to_string());
+                    configs.insert("username", self.target.address().username().to_string());
+                    // generate starter file according to template
+                    let starter_file = builder.create_starter(&configs)?;
+                    // generate systemd file according to template
+                    let sysd_file = builder.create_systemd(&configs)?;
+                    // generate nginx file according to template
+                    let nginx_file = builder.create_nginx(&configs)?;
+                    // scp it along with dotenv
+                    self.connector.transfer(env.as_path()).await?;
+                    // mkdir folder with service name
+                    // git init --bare it
+                    todo!()
+                }
                 SourceType::Tool { install } => {
                     // ssh and run the install script
-                    self.connector.exec(Os::transpile(cmd, service))
+                    // scp install script
+                    // run it
+                    // delete it
+                    info!("Transfering script to remote");
+                    self.connector.transfer(install).await?;
+                    info!("Executing setup script");
+                    self.connector
+                        .exec(Os::exec_script_once(install)?.as_str())
+                        .await?;
+                    info!("Exec script finished up");
                 }
             };
         } else {

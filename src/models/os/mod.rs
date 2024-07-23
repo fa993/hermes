@@ -11,5 +11,5 @@ pub mod shell_cmd;
 pub trait OsLike {
     fn transpile(cmd: ShellCommand, service: &Service) -> anyhow::Result<String>;
 
-    fn exec_script<T: AsRef<Path>>(script_path: T) -> anyhow::Result<String>;
+    fn exec_script_once<T: AsRef<Path>>(script_path: T) -> anyhow::Result<String>;
 }

@@ -1,0 +1,5 @@
+source ~/.bashrc
+cd {{name}}
+export PORT={{port}}
+export SUBPATH="/{{name}}/"
+{{cmd}}

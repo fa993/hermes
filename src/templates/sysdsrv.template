@@ -1,0 +1,14 @@
+[Unit]
+Description={{name}} Service
+[Service]
+WorkingDirectory=/home/{{username}}
+ExecStart=/bin/bash /home/{{username}}/{{name}}-startup.sh
+RestartSec=10
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier={{name}}Service
+User={{username}}
+{{custom}}
+[Install]
+WantedBy=multi-user.target
