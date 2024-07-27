@@ -48,7 +48,9 @@ impl Connector {
     pub async fn exec(&self, command: &str) -> anyhow::Result<()> {
         let out = self.client.execute(command).await?;
         if out.exit_status != 0 {
-            Err(anyhow!("Couldn't execute remote command").context(out.stdout))
+            Err(anyhow!("Couldn't execute remote command")
+                .context(out.stdout)
+                .context(out.stderr))
         } else {
             Ok(())
         }

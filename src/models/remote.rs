@@ -135,10 +135,10 @@ impl Remote {
                     // run it
                     // delete it
                     info!("Transfering script to remote");
-                    self.connector.transfer(install).await?;
+                    let tmpname = self.connector.transfer(install).await?;
                     info!("Executing setup script");
                     self.connector
-                        .exec(Os::exec_script_once(install)?.as_str())
+                        .exec(Os::exec_script_once(tmpname)?.as_str())
                         .await?;
                     info!("Exec script finished up");
                 }
