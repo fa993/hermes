@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use clap::Parser;
 use cli::{Cli, Operation};
-use commands::{down::down, erase::erase, push::push, up::up};
+use commands::{down::down, erase::erase, prepare::prepare, push::push, up::up};
 use human_panic::setup_panic;
 use log::{error, info};
 
@@ -26,7 +26,10 @@ async fn exec() -> anyhow::Result<()> {
         Operation::Push { service, target } => push(service, target).await,
         Operation::Down { service, target } => down(service, target).await,
         Operation::Erase { service, target } => erase(service, target).await,
+        Operation::Prepare { service, cmd } => prepare(service, cmd).await,
     };
-    info!("Success");
+    if res.is_ok() {
+        info!("Success");
+    }
     res
 }

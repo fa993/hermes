@@ -14,18 +14,26 @@ pub struct Connector {
 
 impl Connector {
     pub async fn new(target: &Target) -> anyhow::Result<Connector> {
-        info!("Connecting to server at {}", target.address());
+        info!("Extracting socket address from {}", target.address());
+        let addr = target
+            .address()
+            .socket_addrs(|| Some(22))
+            .map_err(|f| anyhow!("Coudln't convert to socket addr").context(f))?;
+        if addr.len() != 1 {
+            return Err(anyhow!("Only single target is supported").context(
+                addr.into_iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            ));
+        }
+        let target_address = addr.first().unwrap();
+        info!("Connecting to server at {}", target_address);
         //TODO waiting on https://github.com/Miyoshi-Ryota/async-ssh2-tokio/issues/65
         let auth_method =
             AuthMethod::with_key_file(target.identity().as_path().to_string_lossy().as_ref(), None);
         let client = Client::connect(
-            (
-                target
-                    .address()
-                    .host_str()
-                    .ok_or(anyhow!("No host in {}", target.address()))?,
-                22,
-            ),
+            *target_address,
             target.address().username(),
             auth_method,
             ServerCheckMethod::NoCheck,

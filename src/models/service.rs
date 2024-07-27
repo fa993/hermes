@@ -9,7 +9,6 @@ use url::Url;
 pub struct Service {
     name: String,
     source: SourceType,
-    kind: ServiceKind,
     dependencies: Vec<PathBuf>,
 }
 
@@ -17,8 +16,15 @@ pub struct Service {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", content = "values", rename_all = "lowercase")]
 pub enum SourceType {
-    Git { repo: Url, env: PathBuf, port: u32 },
-    Tool { install: PathBuf },
+    Git {
+        repo: Url,
+        env: PathBuf,
+        port: u32,
+        kind: ServiceKind,
+    },
+    Tool {
+        install: PathBuf,
+    },
 }
 
 impl SourceType {

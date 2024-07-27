@@ -90,12 +90,14 @@ impl Remote {
             //TODO: service does not exist .. ssh the starter file and the starter script and git init bare or install it
             info!("{} service does not exist", service.name());
             match service.source() {
-                SourceType::Git { env, port, .. } => {
+                SourceType::Git {
+                    env, port, kind, ..
+                } => {
                     let builder = ConfigFileBuilder::new()?;
                     let mut configs = HashMap::new();
                     configs.insert("name", service.name().clone());
                     configs.insert("port", port.to_string());
-                    configs.insert("cmd", service.kind().get_startup_cmd().to_string());
+                    configs.insert("cmd", kind.get_startup_cmd().to_string());
                     configs.insert("username", self.target.address().username().to_string());
                     // generate starter file according to template
                     let starter_file = builder.create_starter(&configs)?;

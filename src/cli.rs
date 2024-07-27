@@ -41,4 +41,11 @@ pub enum Operation {
         /// Path to target.toml file
         target: PathBuf,
     },
+    /// To configure env with deployment vars set in services.toml
+    Prepare {
+        /// Path to service.toml file
+        service: PathBuf,
+        /// build command
+        cmd: Vec<String>,
+    },
 }
