@@ -36,6 +36,13 @@ impl SourceType {
             _ => None,
         }
     }
+
+    pub fn get_port(&self) -> Option<u32> {
+        match self {
+            Self::Git { port, .. } => Some(*port),
+            _ => None,
+        }
+    }
 }
 
 #[non_exhaustive]

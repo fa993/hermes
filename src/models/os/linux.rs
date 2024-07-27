@@ -47,11 +47,11 @@ impl OsLike for Os {
     }
 
     fn exec_script_once<T: AsRef<Path>>(script_path: T) -> anyhow::Result<String> {
-        return Ok(format!(
+        Ok(format!(
             "chmod +x {} && ./{} && rm -rf {}",
             script_path.as_ref().display(),
             script_path.as_ref().display(),
             script_path.as_ref().display()
-        ));
+        ))
     }
 }

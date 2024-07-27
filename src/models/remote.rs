@@ -124,7 +124,7 @@ impl Remote {
                         .await?;
                     // cleanup command to grant permissions and systemctl daemon-reload, nginx-reload
                     self.connector
-                        .exec(Os::transpile(ShellCommand::GitInitService, service)?.as_str())
+                        .exec(Os::transpile(ShellCommand::CleanupInstallService, service)?.as_str())
                         .await?;
                 }
                 SourceType::Tool { install } => {
@@ -160,7 +160,7 @@ impl Remote {
             self.install_only(&service, true).await?;
         }
 
-        self.install_only(&service, false).await
+        self.install_only(service, false).await
     }
 
     pub async fn down(&self, service: &Service) -> anyhow::Result<()> {
