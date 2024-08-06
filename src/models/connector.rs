@@ -29,9 +29,7 @@ impl Connector {
         }
         let target_address = addr.first().unwrap();
         info!("Connecting to server at {}", target_address);
-        //TODO waiting on https://github.com/Miyoshi-Ryota/async-ssh2-tokio/issues/65
-        let auth_method =
-            AuthMethod::with_key_file(target.identity().as_path().to_string_lossy().as_ref(), None);
+        let auth_method = AuthMethod::with_key_file(target.identity().as_path(), None);
         let client = Client::connect(
             *target_address,
             target.address().username(),
@@ -62,13 +60,7 @@ impl Connector {
             .take(10)
             .map(char::from)
             .collect();
-        self.client
-            .upload_file(
-                file.as_ref().to_string_lossy().into_owned().as_str(),
-                s.as_str(),
-            )
-            .await?;
-
+        self.client.upload_file(file, s.as_str()).await?;
         Ok(s)
     }
 
@@ -78,10 +70,7 @@ impl Connector {
         service: &Service,
     ) -> anyhow::Result<()> {
         self.client
-            .upload_file(
-                file.as_ref().to_string_lossy().into_owned().as_str(),
-                format!("{}/.env", service.name()).as_str(),
-            )
+            .upload_file(file, format!("{}/.env", service.name()).as_str())
             .await?;
         Ok(())
     }
@@ -93,7 +82,7 @@ impl Connector {
     ) -> anyhow::Result<()> {
         self.client
             .upload_file(
-                file.as_ref().to_string_lossy().into_owned().as_str(),
+                file,
                 format!("/etc/nginx/default.d/{}.conf", service.name()).as_str(),
             )
             .await?;
@@ -106,10 +95,7 @@ impl Connector {
         service: &Service,
     ) -> anyhow::Result<()> {
         self.client
-            .upload_file(
-                file.as_ref().to_string_lossy().into_owned().as_str(),
-                format!("{}-starter.sh", service.name()).as_str(),
-            )
+            .upload_file(file, format!("{}-starter.sh", service.name()).as_str())
             .await?;
         Ok(())
     }
@@ -121,7 +107,7 @@ impl Connector {
     ) -> anyhow::Result<()> {
         self.client
             .upload_file(
-                file.as_ref().to_string_lossy().into_owned().as_str(),
+                file,
                 format!("/etc/systemd/system/{}.service", service.name()).as_str(),
             )
             .await?;
